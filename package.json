@@ -1,0 +1,26 @@
+{
+  "name": "cookies-modal-remover",
+  "description": "This extension blocks ads and cookies on all websites.",
+  "version": "1.0.0",
+  "scripts": {},
+  "keywords": [
+    "chrome",
+    "extension",
+    "popup",
+    "block",
+    "ads",
+    "adblock",
+    "cookies"
+  ],
+  "author": "salteadorneo",
+  "license": "ISC",
+  "devDependencies": {
+    "standard": "^17.1.2"
+  },
+  "eslintConfig": {
+    "extends": "standard",
+    "env": {
+      "webextensions": true
+    }
+  }
+}
