@@ -1,4 +1,4 @@
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender) => {
   if (message.count) {
     chrome.action.setBadgeText({ text: message.count.toString(), tabId: sender.tab.id })
   }

@@ -1,24 +1,28 @@
 const KEYWORDS = ['cookie', 'advise', 'alert', 'popup', 'popover', 'consent', 'modal', 'cmp', 'nosnippet', 'adblock', 'dialog', 'ved']
 const ELEMENTS_NOT_TO_REMOVE = ['style', 'script', 'header', 'main', 'footer', 'img']
+const KEYWORDS_GROUPS = [
+  ['cookie', 'acepta'],
+  ['cookie', 'accept'],
+  ['publicidad', 'continua', 'socio', 'subscri']
+]
 
 function isRemovableElement (el) {
-  const tagContainsKeyword = KEYWORDS.some(keyword => el.tagName.toLowerCase().includes(keyword))
-  const classContainsKeyword = Array.from(el.classList).some(className => KEYWORDS.some(keyword => className.toLowerCase().includes(keyword)))
-  const attributeContainsKeyword = Array.from(el.attributes).some(attribute => KEYWORDS.some(keyword => attribute.value.toLowerCase().includes(keyword)))
+  const tagContains = KEYWORDS.some(keyword => el.tagName.toLowerCase().includes(keyword))
+  const classesContains = Array.from(el.classList).some(className => KEYWORDS.some(keyword => className.toLowerCase().includes(keyword)))
+  const attributesContains = Array.from(el.attributes).some(attribute => KEYWORDS.some(keyword => attribute.value.toLowerCase().includes(keyword)))
+  const elementContainsKeyword = tagContains || classesContains || attributesContains
 
   const content = el.textContent.toLowerCase()
 
-  const hasKeywordsOnContent =
-        ['cookie'].some(keyword => content.includes(keyword)) ||
-        ['publicidad', 'continuar', 'socio', 'subscribir'].every(keyword => content.includes(keyword))
+  const hasKeywordsOnContent = KEYWORDS_GROUPS.some(group => group.every(keyword => content.includes(keyword)))
 
-  const isOverlay = content.trim().length === 0 && hasTransparentBackground(el)
+  const isOverlay = content.trim().length === 0 && el.children.length === 0 && hasTransparentBackground(el)
 
   const hasFixedOrAbs = hasPositionFixedOrAbsolute(el)
   const hasFixedOrAbsChild = Array.from(el.children).some(child => hasPositionFixedOrAbsolute(child))
+  const isFloating = hasFixedOrAbs || hasFixedOrAbsChild
 
-  return (tagContainsKeyword || classContainsKeyword || attributeContainsKeyword) &&
-        (hasKeywordsOnContent || isOverlay) && (hasFixedOrAbs || hasFixedOrAbsChild)
+  return elementContainsKeyword && (hasKeywordsOnContent || isOverlay) && isFloating
 }
 
 function hasPositionFixedOrAbsolute (el) {
@@ -41,36 +45,23 @@ function hasOverflowHidden (el) {
   return overflow === 'hidden'
 }
 
-async function getStorageValue (key) {
-  return new Promise((resolve) => {
-    chrome.storage.local.get([key], (result) => {
-      resolve(result[key])
-    })
-  })
-}
-
 async function removeCookieModal () {
   const disabled = await getStorageValue('disabled') || false
-  if (disabled) return
+  // if (disabled) return
 
   const elements = Array.from(document.body.querySelectorAll('*'))
   let count = 0
 
   elements.forEach(el => {
     if (isRemovableElement(el)) {
-      const target = el
-      if (ELEMENTS_NOT_TO_REMOVE.includes(target.tagName.toLowerCase())) {
+      if (ELEMENTS_NOT_TO_REMOVE.includes(el.tagName.toLowerCase())) {
         return
       }
-      target.remove()
-      console.log('Removed', target)
+      if (!disabled) el.remove()
+      console.log('Removed', el)
       count++
     }
   })
-
-  if (hasOverflowHidden(document.body)) {
-    document.body.style.overflow = 'auto'
-  }
 
   chrome.runtime.sendMessage({ count })
 }
@@ -80,17 +71,19 @@ observer.observe(document.body, { childList: true, subtree: true })
 
 setTimeout(() => {
   observer.disconnect()
-}, 10000)
+}, 2000)
 
 removeCookieModal()
 
-function checkBody () {
+async function checkBody () {
+  const disabled = await getStorageValue('disabled') || false
+  if (disabled) return
+
   if (hasOverflowHidden(document.body)) {
     document.body.style.overflow = 'auto'
   }
 
-  const bodyClasses = document.body.classList
-  const bodyClassesToRemove = Array.from(bodyClasses).filter(className => KEYWORDS.some(keyword => className.toLowerCase().includes(keyword)))
+  const bodyClassesToRemove = Array.from(document.body.classList).filter(className => KEYWORDS.some(keyword => className.toLowerCase().includes(keyword)))
   bodyClassesToRemove.forEach(className => document.body.classList.remove(className))
 }
 
@@ -99,6 +92,14 @@ bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['style
 
 setTimeout(() => {
   bodyObserver.disconnect()
-}, 10000)
+}, 2000)
 
 checkBody()
+
+async function getStorageValue (key) {
+  return new Promise((resolve) => {
+    chrome.storage.local.get([key], (result) => {
+      resolve(result[key])
+    })
+  })
+}
