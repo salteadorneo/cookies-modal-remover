@@ -1,5 +1,5 @@
+const EXCLUDE_TAGS = ['style', 'script', 'header', 'main', 'footer', 'img', 'ytd-popup-container']
 const KEYWORDS = ['cookie', 'advise', 'alert', 'popup', 'popover', 'consent', 'modal', 'cmp', 'nosnippet', 'adblock', 'dialog', 'ved']
-const ELEMENTS_NOT_TO_REMOVE = ['style', 'script', 'header', 'main', 'footer', 'img']
 const KEYWORDS_GROUPS = [
   ['cookie', 'acepta'],
   ['cookie', 'accept'],
@@ -54,12 +54,14 @@ async function removeCookieModal () {
 
   elements.forEach(el => {
     if (isRemovableElement(el)) {
-      if (ELEMENTS_NOT_TO_REMOVE.includes(el.tagName.toLowerCase())) {
+      if (EXCLUDE_TAGS.includes(el.tagName.toLowerCase())) {
         return
       }
-      if (!disabled) el.remove()
+      if (!disabled) {
+        el.remove()
+        count++
+      }
       console.log('Removed', el)
-      count++
     }
   })
 
