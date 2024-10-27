@@ -1,7 +1,7 @@
 {
   "name": "cookies-modal-remover",
   "description": "This extension blocks ads and cookies on all websites.",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "scripts": {},
   "keywords": [
     "chrome",
