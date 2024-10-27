@@ -1,5 +1,27 @@
-const EXCLUDE_TAGS = ['style', 'script', 'header', 'main', 'footer', 'img', 'ytd-popup-container']
-const KEYWORDS = ['cookie', 'advise', 'alert', 'popup', 'popover', 'consent', 'modal', 'cmp', 'nosnippet', 'adblock', 'dialog', 'ved']
+const EXCLUDE_TAGS = [
+  'style',
+  'script',
+  'header',
+  'main',
+  'footer',
+  'img',
+  'ytd-popup-container' // Youtube
+]
+const KEYWORDS = [
+  'cookie',
+  'advise',
+  'alert',
+  'popup',
+  'popover',
+  'overlay',
+  'consent',
+  'modal',
+  'cmp',
+  'nosnippet',
+  'adblock',
+  'dialog',
+  'ved'
+]
 const KEYWORDS_GROUPS = [
   ['cookie', 'acepta'],
   ['cookie', 'accept'],
@@ -12,15 +34,12 @@ function isRemovableElement (el) {
   const attributesContains = Array.from(el.attributes).some(attribute => KEYWORDS.some(keyword => attribute.value.toLowerCase().includes(keyword)))
   const elementContainsKeyword = tagContains || classesContains || attributesContains
 
-  const content = el.textContent.toLowerCase()
-
+  const content = el.textContent.toLowerCase().trim()
   const hasKeywordsOnContent = KEYWORDS_GROUPS.some(group => group.every(keyword => content.includes(keyword)))
+  const isOverlay = content.length === 0 && el.children.length === 0 && hasTransparentBackground(el)
 
-  const isOverlay = content.trim().length === 0 && el.children.length === 0 && hasTransparentBackground(el)
-
-  const hasFixedOrAbs = hasPositionFixedOrAbsolute(el)
   const hasFixedOrAbsChild = Array.from(el.children).some(child => hasPositionFixedOrAbsolute(child))
-  const isFloating = hasFixedOrAbs || hasFixedOrAbsChild
+  const isFloating = hasPositionFixedOrAbsolute(el) || hasFixedOrAbsChild
 
   return elementContainsKeyword && (hasKeywordsOnContent || isOverlay) && isFloating
 }
