@@ -5,6 +5,13 @@ const EXCLUDE_TAGS = [
   'main',
   'footer',
   'img',
+  'input',
+  'button',
+  'svg',
+  'path',
+  'a',
+  'video',
+  'i',
   'ytd-popup-container' // Youtube
 ]
 const KEYWORDS = [
