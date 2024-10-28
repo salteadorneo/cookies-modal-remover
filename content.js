@@ -20,12 +20,17 @@ const KEYWORDS = [
   'nosnippet',
   'adblock',
   'dialog',
-  'ved'
+  'ved',
+  'gdpr',
+  'gtm',
+  'fixed',
+  'sticky',
+  'absolute'
 ]
 const KEYWORDS_GROUPS = [
   ['cookie', 'acepta'],
-  ['cookie', 'accept'],
-  ['publicidad', 'continua', 'socio', 'subscri']
+  ['cookie', 'policy'],
+  ['publicidad', 'continua', 'socio', 'subs']
 ]
 
 function isRemovableElement (el) {
@@ -90,10 +95,6 @@ async function removeCookieModal () {
 const observer = new globalThis.MutationObserver(() => removeCookieModal())
 observer.observe(document.body, { childList: true, subtree: true })
 
-setTimeout(() => {
-  observer.disconnect()
-}, 2000)
-
 removeCookieModal()
 
 async function checkBody () {
@@ -111,10 +112,6 @@ async function checkBody () {
 const bodyObserver = new globalThis.MutationObserver(() => checkBody())
 bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] })
 
-setTimeout(() => {
-  bodyObserver.disconnect()
-}, 2000)
-
 checkBody()
 
 async function getStorageValue (key) {
@@ -123,4 +120,15 @@ async function getStorageValue (key) {
       resolve(result[key])
     })
   })
+}
+
+document.addEventListener('scroll', disconnectObservers)
+document.addEventListener('click', disconnectObservers)
+
+function disconnectObservers () {
+  observer.disconnect()
+  bodyObserver.disconnect()
+
+  document.removeEventListener('scroll', disconnectObservers)
+  document.removeEventListener('click', disconnectObservers)
 }
