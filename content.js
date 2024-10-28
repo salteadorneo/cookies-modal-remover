@@ -11,8 +11,12 @@ const EXCLUDE_TAGS = [
   'path',
   'a',
   'video',
-  'i',
-  'ytd-popup-container' // Youtube
+  'i'
+]
+const EXCLUDE_KEYWORDS = [
+  'ytd', // Youtube
+  'ytp', // Youtube
+  'avatar'
 ]
 const KEYWORDS = [
   'cookie',
@@ -41,19 +45,29 @@ const KEYWORDS_GROUPS = [
 ]
 
 function isRemovableElement (el) {
-  const tagContains = KEYWORDS.some(keyword => el.tagName.toLowerCase().includes(keyword))
-  const classesContains = Array.from(el.classList).some(className => KEYWORDS.some(keyword => className.toLowerCase().includes(keyword)))
-  const attributesContains = Array.from(el.attributes).some(attribute => KEYWORDS.some(keyword => attribute.value.toLowerCase().includes(keyword)))
-  const elementContainsKeyword = tagContains || classesContains || attributesContains
+  if (EXCLUDE_TAGS.includes(el.tagName.toLowerCase()) ||
+      containsKeyword(EXCLUDE_KEYWORDS, el.tagName) ||
+      Array.from(el.classList).some(value => containsKeyword(EXCLUDE_KEYWORDS, value)) ||
+      Array.from(el.attributes).some(attr => containsKeyword(EXCLUDE_KEYWORDS, attr.value))) {
+    return false
+  }
+
+  const tagContains = containsKeyword(KEYWORDS, el.tagName)
+  const classesContains = Array.from(el.classList).some(value => containsKeyword(KEYWORDS, value))
+  const attributesContains = Array.from(el.attributes).some(attr => containsKeyword(KEYWORDS, attr.value))
 
   const content = el.textContent.toLowerCase().trim()
   const hasKeywordsOnContent = KEYWORDS_GROUPS.some(group => group.every(keyword => content.includes(keyword)))
   const isOverlay = content.length === 0 && el.children.length === 0 && hasTransparentBackground(el)
 
-  const hasFixedOrAbsChild = Array.from(el.children).some(child => hasPositionFixedOrAbsolute(child))
-  const isFloating = hasPositionFixedOrAbsolute(el) || hasFixedOrAbsChild
+  const hasFloatingChild = Array.from(el.children).some(child => hasPositionFixedOrAbsolute(child))
+  const isFloating = hasPositionFixedOrAbsolute(el) || hasFloatingChild
 
-  return elementContainsKeyword && (hasKeywordsOnContent || isOverlay) && isFloating
+  return (tagContains || classesContains || attributesContains) && (hasKeywordsOnContent || isOverlay) && isFloating
+}
+
+function containsKeyword (array, str) {
+  return array.some(value => str.toLowerCase().trim().includes(value))
 }
 
 function hasPositionFixedOrAbsolute (el) {
@@ -85,9 +99,6 @@ async function removeCookieModal () {
 
   elements.forEach(el => {
     if (isRemovableElement(el)) {
-      if (EXCLUDE_TAGS.includes(el.tagName.toLowerCase())) {
-        return
-      }
       if (!disabled) {
         el.remove()
         count++
