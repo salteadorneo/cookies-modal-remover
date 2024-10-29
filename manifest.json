@@ -1,7 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Cookies Modal Remover",
-    "version": "0.0.3",
+    "name": "Cookies Modal Reject",
+    "description": "This extension reject modal cookies on all websites.",
+    "version": "0.1.0",
     "permissions": [
         "activeTab",
         "scripting",
