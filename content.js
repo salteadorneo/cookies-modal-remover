@@ -32,14 +32,18 @@ const KEYWORDS_GROUPS = [
 ]
 const BUTTON_REJECT = [
   'rechazar',
+  'rechazar todo',
   'no acepta',
   'continuar sin aceptar',
   'reject',
+  'reject all',
+  'reject all cookies',
   'deny',
   'deny all',
   'non accept',
   'accept selected',
-  'neccesary cookies only'
+  'necessary cookies only',
+  'rechazar cookies no necesarias'
 ]
 const BUTTON_ACCEPT = [
   'aceptar',
@@ -66,13 +70,13 @@ async function rejectCookieModal () {
     if (hasElementKeywords(el, KEYWORDS) && hasGroupKeywordsOnContent) {
       el.querySelectorAll(BUTTONS).forEach(button => {
         const content = button.textContent.toLowerCase().trim()
-        const hasReject = BUTTON_REJECT.some(keyword => content.includes(keyword))
+        const hasReject = BUTTON_REJECT.some(keyword => content === keyword)
         if (hasReject) {
           button.click()
           count++
           return
         }
-        const hasAccept = BUTTON_ACCEPT.some(keyword => content.includes(keyword))
+        const hasAccept = BUTTON_ACCEPT.some(keyword => content === keyword)
         if (hasAccept) {
           button.click()
           count++
@@ -94,10 +98,12 @@ function containsKeyword (array, str) {
   return array.some(value => str.toLowerCase().trim().includes(value))
 }
 
-rejectCookieModal()
-setTimeout(rejectCookieModal, 500)
-setTimeout(rejectCookieModal, 1000)
-setTimeout(rejectCookieModal, 2000)
+const observer = new globalThis.MutationObserver(() => rejectCookieModal())
+observer.observe(document.body, { childList: true, subtree: true })
+
+setTimeout(() => {
+  rejectCookieModal()
+}, 300)
 
 async function getStorageValue (key) {
   return new Promise((resolve) => {
@@ -105,4 +111,14 @@ async function getStorageValue (key) {
       resolve(result[key])
     })
   })
+}
+
+document.addEventListener('scroll', disconnectObservers)
+document.addEventListener('click', disconnectObservers)
+
+function disconnectObservers () {
+  observer.disconnect()
+
+  document.removeEventListener('scroll', disconnectObservers)
+  document.removeEventListener('click', disconnectObservers)
 }
