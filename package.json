@@ -1,7 +1,7 @@
 {
   "name": "cookies-modal-reject",
   "description": "This extension reject modal cookies on all websites.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scripts": {},
   "keywords": [
     "chrome",
